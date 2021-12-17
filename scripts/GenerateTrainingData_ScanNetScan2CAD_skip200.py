@@ -153,11 +153,7 @@ def loadMap(log_pth):
 
 def getFolderList(path):
     pbPaths=[]
-    if os.path.isfile(path):
-        pbPaths = [path]
-    else:
-#        pbPaths = [os.path.join(path,p) for p in sorted(os.listdir(path))]
-        pbPaths = sorted(os.listdir(path))
+    pbPaths = [path] if os.path.isfile(path) else sorted(os.listdir(path))
     return pbPaths
 
 def ReadFileToList(path):
@@ -197,7 +193,7 @@ def launchProcess(indices, folders, baseFolder, output_path, pth_location_file, 
 def GenTrainingSet(totalTime):
     pool = mp.Pool(thread)
     pool.daemon = True
-    
+
     all_scans=getFolderList(pth_scan)
     all_scans.sort()
 
@@ -206,37 +202,30 @@ def GenTrainingSet(totalTime):
     folders=ReadFileToList(train_file)
     folders.sort()
     indices = [all_scans.index(i) for i in folders]
-
 #    import sys
 #    sys.exit()
 
     results_train = launchProcess(indices, all_scans, pth_scan, output_training_path, pth_location_train, pool, totalTime)
-    
+
     # Test
     results_test=None
     folders=ReadFileToList(test_file)
     folders.sort()
     indices = [all_scans.index(i) for i in folders]
     results_test = launchProcess(indices, all_scans, pth_scan, output_test_path, pth_location_test, pool, totalTime)
-    
+
     pool.close()
     pool.join()
     if results_train is not None:
-      if debug == 0:
-        results = [r.get() for r in results_train]
-      else:
-        results = [results_train]
-      [print(r) for r in results]
-      for r in results:
-        totalTime[r[0]] = r[1]
+        results = [r.get() for r in results_train] if debug == 0 else [results_train]
+        [print(r) for r in results]
+        for r in results:
+          totalTime[r[0]] = r[1]
     if results_test is not None:
-      if debug == 0:
-        results = [r.get() for r in results_test]
-      else:
-        results = [results_test]
-      [print(r) for r in results]
-      for r in results:
-        totalTime[r[0]] = r[1]
+        results = [r.get() for r in results_test] if debug == 0 else [results_test]
+        [print(r) for r in results]
+        for r in results:
+          totalTime[r[0]] = r[1]
             
 if __name__ == '__main__':
     createFolder(output_training_path)
